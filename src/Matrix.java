@@ -1,7 +1,5 @@
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Scanner;
 
 import static java.lang.Integer.parseInt;
@@ -64,20 +62,42 @@ public class Matrix {
      */
     public static boolean[] checkForm(Matrix matrix) {
         boolean[] result = new boolean[2];
-
         // RULE 1 for REF: all nonzero rows must be above any rows consisting of all zeros
+        if (!checkRuleOneREF(matrix)) { return result; }
+
+        // RULE 2 for REF: each leading entry must be one column to the right of the previous
+        //                 leading entry.
+        if (!checkRuleTwoREF(matrix)) { return result; }
+
+        // RULE 3 for REF: all entries below a leading entry in the same column should be 0.
+        if (!checkRuleThreeREF(matrix)) { return result; }
+
+        result[0] = true;
+
+        // RULE 1 for RREF: leading entry for a nonzero row must be 1
+        if (!checkRuleOneRREF(matrix)) { return result; }
+
+        // RULE 2 for RREF: each leading 1 is the only non-zero entry in the entire column
+        if (!checkRuleTwoRREF(matrix)) { return result; }
+
+        result[1] = true;
+        return result;
+    }
+
+    private static boolean checkRuleOneREF(Matrix matrix) {
         boolean zeroRowFound = false;
         for (ArrayList<Integer> row : matrix.matrix) {
             if (zeroRowFound && !checkAllZeros(row)) {
-                return result;
+                return false;
             }
             if (checkAllZeros(row)) {
                 zeroRowFound = true;
             }
         }
+        return true;
+    }
 
-        // RULE 2 for REF: each leading entry must be one column to the right of the previous
-        //                 leading entry.
+    private static boolean checkRuleTwoREF(Matrix matrix) {
         int row = 0;
         int col = 0;
         while (true) {
@@ -87,7 +107,7 @@ public class Matrix {
             else {
                 for (int i = 0; i < col; i++) {
                     if (matrix.matrix.get(row).get(i) != 0) {
-                        return result;
+                        return false;
                     }
                 }
                 col++;
@@ -98,11 +118,61 @@ public class Matrix {
                 break;
             }
         }
+        return true;
+    }
 
-        // RULE 3 for REF: all entries below a leading entry in the same column should be 0.
+    private static boolean checkRuleThreeREF(Matrix matrix) {
+        for (int i = 0; i < matrix.matrix.size(); i++) {
+            if (!checkAllZeros(matrix.matrix.get(i))) {
+                int col = findLeadingEntry(matrix.matrix.get(i));
+                for (int j = i + 1; j < matrix.matrix.size(); j++) {
+                    if (matrix.matrix.get(j).get(col) != 0) {
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
+    }
 
+    private static boolean checkRuleOneRREF(Matrix matrix) {
+        for (ArrayList<Integer> row : matrix.matrix) {
+            if (!checkAllZeros(row)) {
+                int lead = findLeadingEntry(row);
+                if (row.get(lead) != 1) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
 
-        return result;
+    private static boolean checkRuleTwoRREF(Matrix matrix) {
+        for (int i = 0; i < matrix.matrix.size(); i++) {
+            if (!checkAllZeros(matrix.matrix.get(i))) {
+                int col = findLeadingEntry(matrix.matrix.get(i));
+                for (int j = 0; j < matrix.matrix.size(); j++) {
+                    if (j != i) {
+                        if (matrix.matrix.get(j).get(col) != 0) {
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
+    // Returns column of leading entry for a particular row
+    private static int findLeadingEntry(ArrayList<Integer> row) {
+        int col = 0;
+        for (Integer i : row) {
+            if (i != 0) {
+                break;
+            }
+            col++;
+        }
+        return col;
     }
 
     // Will return true if all values of the List are 0
@@ -222,7 +292,6 @@ public class Matrix {
     public static void main(String[] args) {
         Matrix matrix = new Matrix();
         System.out.println(matrix);
-
         System.out.println(Arrays.toString(checkForm(matrix)));
 
     }
