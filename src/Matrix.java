@@ -1,3 +1,7 @@
+/*
+Author: Manan Chopra (m1chopra@ucsd.edu)
+Date: April 2, 2021
+ */
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
@@ -26,6 +30,8 @@ public class Matrix {
             " hitting the 'return' key after each " +
             "row.\nOnce you have finished typing out the rows, type 'done'.";
     private final static String MATRIX_SAVED = "Matrix has been saved.";
+    private final static String TRANSFORMING_MATRIX = "Transforming matrix...";
+    private final static String TRANSFORMATION_DONE = "Done! Here is the result:";
 
     /*
     When a Matrix object is created using this constructor, the user is prompted through the
@@ -60,9 +66,8 @@ public class Matrix {
             }
         }
 
-        System.out.println(this.matrix);
+        //System.out.println(this.matrix);
         scanner.close();
-
         System.out.println(MATRIX_SAVED);
     }
 
@@ -75,7 +80,10 @@ public class Matrix {
     Transforms the given matrix into REF using the recursive helper method.
      */
     public static void transformREF(Matrix matrix) {
+        System.out.println(TRANSFORMING_MATRIX);
         transformREF(matrix, 0);
+        System.out.println(TRANSFORMATION_DONE);
+        System.out.println(matrix);
     }
 
     /*
@@ -138,20 +146,22 @@ public class Matrix {
     private static int findAndSwapPivot(ArrayList<ArrayList<Integer>> temp, int col, int rowMin) {
         int row = -1;
         int pivot = 0;
-        boolean breakNow = false;
-        for (int i = 0; i < temp.get(0).size(); i++) {
+
+        for (int i = rowMin; i < temp.get(0).size(); i++) {
             if (temp.get(i).get(col) != 0) {
                 row = i;
                 pivot = temp.get(i).get(col);
                 break;
             }
         }
-        ArrayList<Integer> topRow = temp.get(rowMin);
-        ArrayList<Integer> swapRow = temp.get(row);
-        temp.remove(rowMin);
-        temp.add(rowMin, swapRow);
-        temp.remove(row);
-        temp.add(row, topRow);
+        if (row != rowMin) {
+            ArrayList<Integer> topRow = temp.get(rowMin);
+            ArrayList<Integer> swapRow = temp.get(row);
+            temp.remove(rowMin);
+            temp.add(rowMin, swapRow);
+            temp.remove(row);
+            temp.add(row, topRow);
+        }
         return pivot;
     }
 
@@ -201,9 +211,10 @@ public class Matrix {
         for (int index = tracker + 1; index < temp.get(0).size(); index++) {
             ArrayList<Integer> newRow = new ArrayList<>();
             if (temp.get(index).get(col) != 0) {
-                int mult = getMultiplier(temp.get(0).get(col), temp.get(index).get(col));
+                int mult = getMultiplier(temp.get(tracker).get(col), temp.get(index).get(col));
                 for (int j = 0; j < temp.get(0).size(); j++) {
-                    int newEntry = (temp.get(index).get(j)) + (temp.get(0).get(j) * mult);
+                    //int mult = getMultiplier(temp.get(tracker).get(j), temp.get(index).get(j));
+                    int newEntry = (temp.get(index).get(j)) + (temp.get(tracker).get(j) * mult);
                     newRow.add(newEntry);
                 }
                 temp.remove(index);
@@ -339,13 +350,20 @@ public class Matrix {
 
     @Override
     public String toString() {
-        return this.matrix.toString();
+        ArrayList<String> print = new ArrayList<>();
+        for (ArrayList<Integer> row : this.matrix) {
+            print.add(row.toString() + "\n");
+        }
+        StringBuilder result = new StringBuilder();
+        for (String s : print) {
+            result.append(s);
+        }
+        return result.toString();
     }
 
     public static void main(String[] args) {
         Matrix matrix = new Matrix();
-        System.out.println(matrix);
-        System.out.println(Arrays.toString(checkForm(matrix)));
+        transformREF(matrix);
 
     }
 }
