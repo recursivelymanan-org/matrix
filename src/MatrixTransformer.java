@@ -35,6 +35,15 @@ public class Matrix {
     private final static String TRANSFORMATION_DONE = "Done! Here is the result:";
     private final static String INVALID_ENTRY = "Matrix entered was invalid, please try again. " +
             "Matrix must have at least 2 rows, and each row must be of the same length.";
+    private final static String WELCOME_MSG = "Welcome! This program will help you reduce " +
+            "matrices!";
+    private final static String OPTIONS = "Currently, you are able to do the following with this " +
+            "program:\n1: Transform to REF\nPlease enter the number of the action you would like " +
+            "to perform.";
+    private final static String INVALID_CHOICE = "You have entered an invalid number. Please try " +
+            "again.";
+    private final static String CLOSING_MSG = "Thank you! If you would like to try on another " +
+            "matrix, please enter 'next'. If you are done, please enter 'done'.";
 
     /*
     When a Matrix object is created using this constructor, the user is prompted through the
@@ -96,8 +105,6 @@ public class Matrix {
     /*
     Helper method for the public transformREF method, uses recursion to move through and
     transform the matrix.
-
-    TODO: finish implementation, currently only performs steps once, needs to work repeatedly
      */
     private static void transformREF(Matrix matrix, int rowMin) {
         if (matrix.isREF) { return; }
@@ -126,6 +133,8 @@ public class Matrix {
             transformREF(matrix);
             matrix.isREF = true;
         }
+
+
 
         matrix.isRREF = true;
     }
@@ -366,6 +375,32 @@ public class Matrix {
             result.append(s);
         }
         return result.toString();
+    }
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        boolean done = false;
+
+        System.out.println(WELCOME_MSG);
+        Matrix matrix = new Matrix();
+
+        String choice = "";
+        while(!done) {
+            System.out.println(OPTIONS);
+            choice = scanner.nextLine();
+            switch (choice) {
+                case "1":
+                    transformREF(matrix);
+                    break;
+                case "done":
+                    done = true;
+                    break;
+                default:
+                    System.out.println(INVALID_CHOICE);
+            }
+        }
+
+        System.out.println(CLOSING_MSG);
     }
 
 }
