@@ -7,4 +7,4 @@ code is now not a *complete* mess
 
 ## progress notes
 4/6/21 : REF transformation now functional  
-4/7/21 : seperated project into multiple files, changed functions to be nonstatic
+4/7/21 : separated project into multiple files, changed functions to be nonstatic
