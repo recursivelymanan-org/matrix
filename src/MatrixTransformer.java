@@ -3,10 +3,6 @@ Author: Manan Chopra (m1chopra@ucsd.edu)
 Date: April 2, 2021
  */
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Scanner;
-import static java.lang.Integer.parseInt;
-
 
 /*
 In this file, some linear algebra terminology is used. A quick list of some definitions:
@@ -18,23 +14,11 @@ In this file, some linear algebra terminology is used. A quick list of some defi
 Matrix class contains all methods for transforming the matrix, as well as the main method that is
 currently being used mostly for testing.
  */
-public class Matrix {
+public class MatrixTransformer {
 
-    ArrayList<ArrayList<Double>> matrix;
-    boolean isREF, isRREF;
-    int height, length;
 
-    private final static String PROMPT_USER_ENTRY = "Before performing operations on a Matrix, " +
-            "you need to create one. " +
-            "Please enter the desired matrix row by row, separating each element with a space" +
-            " and" +
-            " hitting the 'return' key after each " +
-            "row.\nOnce you have finished typing out the rows, type 'done'.";
-    private final static String MATRIX_SAVED = "Matrix has been saved.";
     private final static String TRANSFORMING_MATRIX = "Transforming matrix...";
     private final static String TRANSFORMATION_DONE = "Done! Here is the result:";
-    private final static String INVALID_ENTRY = "Matrix entered was invalid, please try again. " +
-            "Matrix must have at least 2 rows, and each row must be of the same length.";
     private final static String WELCOME_MSG = "Welcome! This program will help you reduce " +
             "matrices!";
     private final static String OPTIONS = "Currently, you are able to do the following with this " +
@@ -46,56 +30,9 @@ public class Matrix {
             "matrix, please enter 'next'. If you are done, please enter 'done'.";
 
     /*
-    When a Matrix object is created using this constructor, the user is prompted through the
-    terminal to enter the values of the matrix row by row.
-     */
-    public Matrix() {
-        this.matrix = new ArrayList<>();
-        Scanner scanner = new Scanner(System.in);
-
-        System.out.println(PROMPT_USER_ENTRY);
-
-        String entry = "";
-
-        while (true) {
-            while (!entry.equals("done")) {
-                entry = scanner.nextLine();
-                if (!entry.equals("done")) {
-                    String[] strRow = entry.split(" ");
-                    Double[] intRow = new Double[strRow.length];
-                    for (int i = 0; i < strRow.length; i++) {
-                        intRow[i] = Double.parseDouble(strRow[i]);
-                    }
-                    ArrayList<Double> row = new ArrayList<>(Arrays.asList(intRow));
-                    this.matrix.add(row);
-                }
-            }
-            if (!checkValid(this)) {
-                this.matrix.clear();
-                System.out.println(INVALID_ENTRY);
-                entry = "";
-            }
-            else {
-                break;
-            }
-        }
-
-        //System.out.println(this.matrix);
-        scanner.close();
-        this.height = this.matrix.size();
-        this.length = this.matrix.get(0).size();
-        System.out.println(MATRIX_SAVED);
-    }
-
-    // Constructor for testing purposes
-    public Matrix (ArrayList<ArrayList<Double>> matrix) {
-        this.matrix = matrix;
-    }
-
-    /*
     Transforms the given matrix into REF using the recursive helper method.
      */
-    public static void transformREF(Matrix matrix) {
+    public void transformREF(Matrix matrix) {
         System.out.println(TRANSFORMING_MATRIX);
         transformREF(matrix, 0);
         System.out.println(TRANSFORMATION_DONE);
@@ -106,14 +43,14 @@ public class Matrix {
     Helper method for the public transformREF method, uses recursion to move through and
     transform the matrix.
      */
-    private static void transformREF(Matrix matrix, int rowMin) {
+    private void transformREF(Matrix matrix, int rowMin) {
         if (matrix.isREF) { return; }
-        ArrayList<ArrayList<Double>> temp = new ArrayList<>(matrix.matrix);
+        ArrayList<ArrayList<Double>> temp = new ArrayList<>(matrix.entries);
         int col = findLeftMostNonzeroCol(temp, rowMin);
         double pivot = findAndSwapPivot(temp, col, rowMin);
         createZerosBelowPivot(temp, col, pivot);
 
-        matrix.matrix = temp;
+        matrix.entries = temp;
 
         if (!checkForm(matrix)[0]) {
             transformREF(matrix, rowMin + 1);
@@ -127,7 +64,7 @@ public class Matrix {
 
     TODO: currently does nothing except check that it is REF
      */
-    public void transformRREF(Matrix matrix) {
+    public void transformReducedREF(Matrix matrix) {
         if (matrix.isRREF) { return; }
         if (!matrix.isREF) {
             transformREF(matrix);
@@ -143,7 +80,7 @@ public class Matrix {
     Used in the transform methods to find leftmost nonzero column in a matrix. rowMin refers to
     the top border of the portion of the matrix that we are looking at.
      */
-    private static int findLeftMostNonzeroCol(ArrayList<ArrayList<Double>> temp, int rowMin) {
+    private int findLeftMostNonzeroCol(ArrayList<ArrayList<Double>> temp, int rowMin) {
         for (int i = 0; i < temp.get(0).size(); i++) {
             int tracker = 0;
             for (int j = rowMin; j < temp.size(); j++) {
@@ -159,7 +96,7 @@ public class Matrix {
     /*
     Used in the transform methods, finds the pivot row and moves it to the 'top' of the matrix.
      */
-    private static double findAndSwapPivot(ArrayList<ArrayList<Double>> temp, int col, int rowMin) {
+    private double findAndSwapPivot(ArrayList<ArrayList<Double>> temp, int col, int rowMin) {
         int row = -1;
         double pivot = 0;
 
@@ -182,7 +119,7 @@ public class Matrix {
     }
 
     // Returns the column containing the leading entry for a given row
-    private static int findLeadingEntry(ArrayList<Double> row) {
+    private int findLeadingEntry(ArrayList<Double> row) {
         int col = 0;
         for (Double i : row) {
             if (i != 0) {
@@ -194,7 +131,7 @@ public class Matrix {
     }
 
     // Will return true if all values of the List are 0
-    private static boolean checkAllZeros(ArrayList<Double> row) {
+    private boolean checkAllZeros(ArrayList<Double> row) {
         int tracker = 0;
         for (Double i : row) {
             tracker += i;
@@ -203,7 +140,7 @@ public class Matrix {
     }
 
     // Used in the
-    private static double getMultiplier(double i, double j) {
+    private double getMultiplier(double i, double j) {
         j = j * -1;
         return (j / i);
     }
@@ -212,7 +149,7 @@ public class Matrix {
     Used to fulfill RULE 3 for REF and transforms matrix so that entries below the given pivot
     are all zero.
      */
-    private static void createZerosBelowPivot(ArrayList<ArrayList<Double>> temp, int col,
+    private void createZerosBelowPivot(ArrayList<ArrayList<Double>> temp, int col,
                                               double pivot) {
         int i = 0;
         int tracker = -1;
@@ -240,28 +177,14 @@ public class Matrix {
 
     }
 
-    /*
-    Checks if a given matrix is valid for the purposes of this project. A valid matrix should have
-    more than 1 row, and each row should have the same number of entries.
-     */
-    public static boolean checkValid(Matrix matrix) {
-        if (matrix.matrix.size() < 2) { return false; }
 
-        int rowLength = matrix.matrix.get(0).size();
-        for (ArrayList<Double> row : matrix.matrix) {
-            if (row.size() != rowLength) {
-                return false;
-            }
-        }
-        return true;
-    }
 
     /*
     Returns an array of length 2 that describes if the given matrix is in REF or RREF. Index 0 of
     the returned array corresponds to REF, index 1 corresponds to RREF. Makes use of five helper
     methods that all check their own rule.
      */
-    public static boolean[] checkForm(Matrix matrix) {
+    public boolean[] checkForm(Matrix matrix) {
         boolean[] result = new boolean[2];
 
         if (!checkRuleOneREF(matrix)) { return result; }
@@ -278,9 +201,9 @@ public class Matrix {
     }
 
     // RULE 1 for REF: all nonzero rows must be above any rows consisting of all zeros
-    private static boolean checkRuleOneREF(Matrix matrix) {
+    private boolean checkRuleOneREF(Matrix matrix) {
         boolean zeroRowFound = false;
-        for (ArrayList<Double> row : matrix.matrix) {
+        for (ArrayList<Double> row : matrix.entries) {
             if (zeroRowFound && !checkAllZeros(row)) {
                 return false;
             }
@@ -295,16 +218,16 @@ public class Matrix {
     RULE 2 for REF: each leading entry must be one column to the right of the previous leading
     entry.
      */
-    private static boolean checkRuleTwoREF(Matrix matrix) {
+    private boolean checkRuleTwoREF(Matrix matrix) {
         int row = 0;
         int col = 0;
         while (true) {
-            if (checkAllZeros(matrix.matrix.get(0))) {
+            if (checkAllZeros(matrix.entries.get(0))) {
                 break;
             }
             else {
                 for (int i = 0; i < col; i++) {
-                    if (matrix.matrix.get(row).get(i) != 0) {
+                    if (matrix.entries.get(row).get(i) != 0) {
                         return false;
                     }
                 }
@@ -312,7 +235,7 @@ public class Matrix {
                 row++;
             }
 
-            if (row >= matrix.matrix.size() || col >= matrix.matrix.get(0).size()) {
+            if (row >= matrix.height || col >= matrix.length) {
                 break;
             }
         }
@@ -320,12 +243,12 @@ public class Matrix {
     }
 
     // RULE 3 for REF: all entries below a leading entry in the same column should be 0.
-    private static boolean checkRuleThreeREF(Matrix matrix) {
-        for (int i = 0; i < matrix.matrix.size(); i++) {
-            if (!checkAllZeros(matrix.matrix.get(i))) {
-                int col = findLeadingEntry(matrix.matrix.get(i));
-                for (int j = i + 1; j < matrix.matrix.size(); j++) {
-                    if (matrix.matrix.get(j).get(col) != 0) {
+    private boolean checkRuleThreeREF(Matrix matrix) {
+        for (int i = 0; i < matrix.height; i++) {
+            if (!checkAllZeros(matrix.entries.get(i))) {
+                int col = findLeadingEntry(matrix.entries.get(i));
+                for (int j = i + 1; j < matrix.height; j++) {
+                    if (matrix.entries.get(j).get(col) != 0) {
                         return false;
                     }
                 }
@@ -335,8 +258,8 @@ public class Matrix {
     }
 
     // RULE 1 for RREF: leading entry for a nonzero row must be 1
-    private static boolean checkRuleOneRREF(Matrix matrix) {
-        for (ArrayList<Double> row : matrix.matrix) {
+    private boolean checkRuleOneRREF(Matrix matrix) {
+        for (ArrayList<Double> row : matrix.entries) {
             if (!checkAllZeros(row)) {
                 int lead = findLeadingEntry(row);
                 if (row.get(lead) != 1) {
@@ -348,13 +271,13 @@ public class Matrix {
     }
 
     // RULE 2 for RREF: each leading 1 is the only non-zero entry in the entire column
-    private static boolean checkRuleTwoRREF(Matrix matrix) {
-        for (int i = 0; i < matrix.matrix.size(); i++) {
-            if (!checkAllZeros(matrix.matrix.get(i))) {
-                int col = findLeadingEntry(matrix.matrix.get(i));
-                for (int j = 0; j < matrix.matrix.size(); j++) {
+    private boolean checkRuleTwoRREF(Matrix matrix) {
+        for (int i = 0; i < matrix.height; i++) {
+            if (!checkAllZeros(matrix.entries.get(i))) {
+                int col = findLeadingEntry(matrix.entries.get(i));
+                for (int j = 0; j < matrix.height; j++) {
                     if (j != i) {
-                        if (matrix.matrix.get(j).get(col) != 0) {
+                        if (matrix.entries.get(j).get(col) != 0) {
                             return false;
                         }
                     }
@@ -364,43 +287,9 @@ public class Matrix {
         return true;
     }
 
-    @Override
-    public String toString() {
-        ArrayList<String> print = new ArrayList<>();
-        for (ArrayList<Double> row : this.matrix) {
-            print.add(row.toString() + "\n");
-        }
-        StringBuilder result = new StringBuilder();
-        for (String s : print) {
-            result.append(s);
-        }
-        return result.toString();
-    }
+
 
     public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
-        boolean done = false;
 
-        System.out.println(WELCOME_MSG);
-        Matrix matrix = new Matrix();
-
-        String choice = "";
-        while(!done) {
-            System.out.println(OPTIONS);
-            choice = scanner.nextLine();
-            switch (choice) {
-                case "1":
-                    transformREF(matrix);
-                    break;
-                case "done":
-                    done = true;
-                    break;
-                default:
-                    System.out.println(INVALID_CHOICE);
-            }
-        }
-
-        System.out.println(CLOSING_MSG);
     }
-
 }
