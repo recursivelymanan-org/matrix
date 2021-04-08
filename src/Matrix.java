@@ -1,10 +1,14 @@
 import java.util.ArrayList;
+import java.util.Scanner;
 
 public class Matrix {
 
     ArrayList<ArrayList<Double>> entries;
     boolean isREF, isRREF;
     int height, length;
+
+    private final static String CONTINUE = "If you would like to transform another matrix, please" +
+            " type 'Y'. If you are done, type 'N'. Thank you!";
 
     public Matrix() {
         this.entries = new ArrayList<>();
@@ -49,10 +53,24 @@ public class Matrix {
     }
 
     public static void main(String[] args) {
-        MatrixReader reader = new MatrixReader();
-        Matrix matrix = reader.readFromTerm();
+        while (true) {
+            MatrixReader reader = new MatrixReader();
+            Matrix matrix = reader.readFromTerm();
 
-        MatrixTransformer trans = new MatrixTransformer();
-        trans.transformREF(matrix);
+            MatrixTransformer trans = new MatrixTransformer();
+            trans.transformREF(matrix);
+            System.out.println(matrix);
+
+            trans.transformReducedREF(matrix);
+            System.out.println(matrix);
+
+            System.out.println(CONTINUE);
+            Scanner scanner = new Scanner(System.in);
+            String choice = scanner.nextLine();
+
+            if (!choice.equals("Y") && !choice.equals("y")) {
+                break;
+            }
+        }
     }
 }
