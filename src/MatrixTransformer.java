@@ -16,27 +16,11 @@ currently being used mostly for testing.
  */
 public class MatrixTransformer {
 
-
-    private final static String TRANSFORMING_MATRIX = "Transforming matrix...";
-    private final static String TRANSFORMATION_DONE = "Done! Here is the result:";
-    private final static String WELCOME_MSG = "Welcome! This program will help you reduce " +
-            "matrices!";
-    private final static String OPTIONS = "Currently, you are able to do the following with this " +
-            "program:\n1: Transform to REF\nPlease enter the number of the action you would like " +
-            "to perform.";
-    private final static String INVALID_CHOICE = "You have entered an invalid number. Please try " +
-            "again.";
-    private final static String CLOSING_MSG = "Thank you! If you would like to try on another " +
-            "matrix, please enter 'next'. If you are done, please enter 'done'.";
-
     /*
     Transforms the given matrix into REF using the recursive helper method.
      */
     public void transformREF(Matrix matrix) {
-        System.out.println(TRANSFORMING_MATRIX);
         transformREF(matrix, 0);
-        System.out.println(TRANSFORMATION_DONE);
-        System.out.println(matrix);
     }
 
     /*
@@ -61,8 +45,6 @@ public class MatrixTransformer {
 
     /*
     Transforms a method (THAT IS ALREADY IN REF) to RREF.
-
-    TODO: currently does nothing except check that it is REF
      */
     public void transformReducedREF(Matrix matrix) {
         if (matrix.isRREF) { return; }
@@ -71,9 +53,66 @@ public class MatrixTransformer {
             matrix.isREF = true;
         }
 
+        transformReducedREF(matrix, matrix.height - 1);
+    }
 
+    public void transformReducedREF(Matrix matrix, int rowMax) {
+        if (!checkAllZeros(matrix.entries.get(rowMax))) {
+            int col = findLeadingEntry(matrix.entries.get(rowMax));
+            createZerosAbovePivot(matrix, col);
+            scaleRow(matrix, rowMax);
+
+        }
+        if (!checkForm(matrix)[1]) {
+            transformReducedREF(matrix, rowMax - 1);
+        }
 
         matrix.isRREF = true;
+    }
+
+    private void scaleRow(Matrix matrix, int rowMax) {
+        ArrayList<Double> newRow = matrix.entries.get(rowMax);
+        int col = findLeadingEntry(newRow);
+        double lead = newRow.get(col);
+        for (int i = col; i < matrix.length; i++) {
+            double newValue = newRow.get(i) / lead;
+            newRow.remove(i);
+            newRow.add(i, newValue);
+        }
+
+        matrix.entries.remove(rowMax);
+        matrix.entries.add(rowMax, newRow);
+    }
+
+    private void createZerosAbovePivot(Matrix matrix, int col) {
+        //First iterate from bottom to top of column and find the pivot
+        int pivotRow = 0;
+        for (int i = matrix.height - 1; i >= 0; i --) {
+            if (matrix.entries.get(i).get(col) != 0) {
+                pivotRow = i;
+                break;
+            }
+        }
+        
+        if (pivotRow == 0) { return; }
+
+        for (int i = pivotRow - 1; i >= 0; i--) {
+            ArrayList<Double> newRow = new ArrayList<>();
+            if (matrix.entries.get(i).get(col) != 0) {
+                double mult = getMultiplier(matrix.entries.get(pivotRow).get(col),
+                        matrix.entries.get(i).get(col));
+
+                for (int j = 0; j < matrix.entries.get(0).size(); j++) {
+                    double newEntry = (matrix.entries.get(i).get(j)) +
+                            (matrix.entries.get(pivotRow).get(j) * mult);
+
+                    newRow.add(newEntry);
+                }
+                matrix.entries.remove(i);
+                matrix.entries.add(i, newRow);
+            }
+        }
+        
     }
 
     /*
@@ -135,8 +174,11 @@ public class MatrixTransformer {
         int tracker = 0;
         for (Double i : row) {
             tracker += i;
+            if (tracker != 0) {
+                return false;
+            }
         }
-        return tracker == 0;
+        return true;
     }
 
     // Used in the
@@ -151,6 +193,7 @@ public class MatrixTransformer {
      */
     private void createZerosBelowPivot(ArrayList<ArrayList<Double>> temp, int col,
                                               double pivot) {
+        // First find the row containing the pivot
         int i = 0;
         int tracker = -1;
         for (ArrayList<Double> row : temp) {
@@ -160,7 +203,8 @@ public class MatrixTransformer {
             }
             i++;
         }
-
+        
+        // Then transform matrix such that all entries below pivot are zero
         for (int index = tracker + 1; index < temp.size(); index++) {
             ArrayList<Double> newRow = new ArrayList<>();
             if (temp.get(index).get(col) != 0) {
@@ -288,8 +332,4 @@ public class MatrixTransformer {
     }
 
 
-
-    public static void main(String[] args) {
-
-    }
 }
