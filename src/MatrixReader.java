@@ -51,7 +51,7 @@ public class MatrixReader {
         }
 
         //System.out.println(this.matrix);
-        scanner.close();
+        //scanner.close();
         matrix.height = matrix.entries.size();
         matrix.length = matrix.entries.get(0).size();
         System.out.println(MATRIX_SAVED);
