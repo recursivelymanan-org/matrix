@@ -1,4 +1,5 @@
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
@@ -18,7 +19,7 @@ public class MatrixReader {
 
     public Matrix readFromTerm() {
         Matrix matrix = new Matrix();
-        ArrayList<ArrayList<Double>> entries = new ArrayList<>();
+        ArrayList<ArrayList<BigDecimal>> entries = new ArrayList<>();
         MatrixTransformer transformer = new MatrixTransformer();
         Scanner scanner = new Scanner(System.in);
 
@@ -31,11 +32,12 @@ public class MatrixReader {
                 entry = scanner.nextLine();
                 if (!entry.equals("done")) {
                     String[] strRow = entry.split(" ");
-                    Double[] intRow = new Double[strRow.length];
+                    BigDecimal[] decRow = new BigDecimal[strRow.length];
                     for (int i = 0; i < strRow.length; i++) {
-                        intRow[i] = Double.parseDouble(strRow[i]);
+                        BigDecimal number = new BigDecimal(strRow[i]);
+                        decRow[i] = number;
                     }
-                    ArrayList<Double> row = new ArrayList<>(Arrays.asList(intRow));
+                    ArrayList<BigDecimal> row = new ArrayList<>(Arrays.asList(decRow));
                     entries.add(row);
                 }
             }

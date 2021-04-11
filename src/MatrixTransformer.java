@@ -2,7 +2,10 @@
 Author: Manan Chopra (m1chopra@ucsd.edu)
 Date: April 2, 2021
  */
+import java.math.MathContext;
+import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.math.BigDecimal;
 
 /*
 In this file, some linear algebra terminology is used. A quick list of some definitions:
@@ -15,6 +18,9 @@ Matrix class contains all methods for transforming the matrix, as well as the ma
 currently being used mostly for testing.
  */
 public class MatrixTransformer {
+
+    private final static String EXCEPTION = "There was an error calculating the ReducedREF form " +
+            "of your matrix.";
 
     /*
     Transforms the given matrix into REF using the recursive helper method.
@@ -29,9 +35,9 @@ public class MatrixTransformer {
      */
     private void transformREF(Matrix matrix, int rowMin) {
         if (matrix.isREF) { return; }
-        ArrayList<ArrayList<Double>> temp = new ArrayList<>(matrix.entries);
+        ArrayList<ArrayList<BigDecimal>> temp = new ArrayList<>(matrix.entries);
         int col = findLeftMostNonzeroCol(temp, rowMin);
-        double pivot = findAndSwapPivot(temp, col, rowMin);
+        BigDecimal pivot = findAndSwapPivot(temp, col, rowMin);
         createZerosBelowPivot(temp, col, pivot);
 
         matrix.entries = temp;
@@ -71,11 +77,17 @@ public class MatrixTransformer {
     }
 
     private void scaleRow(Matrix matrix, int rowMax) {
-        ArrayList<Double> newRow = matrix.entries.get(rowMax);
+        ArrayList<BigDecimal> newRow = matrix.entries.get(rowMax);
         int col = findLeadingEntry(newRow);
-        double lead = newRow.get(col);
+        BigDecimal lead = newRow.get(col);
         for (int i = col; i < matrix.length; i++) {
-            double newValue = newRow.get(i) / lead;
+            BigDecimal newValue = null;
+            try {
+                newValue = newRow.get(i).divide(lead);
+            }
+            catch (ArithmeticException e) {
+                System.out.println(EXCEPTION);
+            }
             newRow.remove(i);
             newRow.add(i, newValue);
         }
@@ -88,7 +100,7 @@ public class MatrixTransformer {
         //First iterate from bottom to top of column and find the pivot
         int pivotRow = 0;
         for (int i = matrix.height - 1; i >= 0; i --) {
-            if (matrix.entries.get(i).get(col) != 0) {
+            if (matrix.entries.get(i).get(col).compareTo(BigDecimal.ZERO) != 0) {
                 pivotRow = i;
                 break;
             }
@@ -97,14 +109,15 @@ public class MatrixTransformer {
         if (pivotRow == 0) { return; }
 
         for (int i = pivotRow - 1; i >= 0; i--) {
-            ArrayList<Double> newRow = new ArrayList<>();
-            if (matrix.entries.get(i).get(col) != 0) {
-                double mult = getMultiplier(matrix.entries.get(pivotRow).get(col),
+            ArrayList<BigDecimal> newRow = new ArrayList<>();
+            if (matrix.entries.get(i).get(col).compareTo(BigDecimal.ZERO) != 0) {
+                BigDecimal mult = getMultiplier(matrix.entries.get(pivotRow).get(col),
                         matrix.entries.get(i).get(col));
 
                 for (int j = 0; j < matrix.entries.get(0).size(); j++) {
-                    double newEntry = (matrix.entries.get(i).get(j)) +
-                            (matrix.entries.get(pivotRow).get(j) * mult);
+                    BigDecimal newEntry =
+                            (matrix.entries.get(i).get(j)).add((matrix.entries.get(pivotRow)
+                                    .get(j).multiply(mult)));
 
                     newRow.add(newEntry);
                 }
@@ -119,12 +132,12 @@ public class MatrixTransformer {
     Used in the transform methods to find leftmost nonzero column in a matrix. rowMin refers to
     the top border of the portion of the matrix that we are looking at.
      */
-    private int findLeftMostNonzeroCol(ArrayList<ArrayList<Double>> temp, int rowMin) {
+    private int findLeftMostNonzeroCol(ArrayList<ArrayList<BigDecimal>> temp, int rowMin) {
         for (int i = 0; i < temp.get(0).size(); i++) {
-            int tracker = 0;
+            BigDecimal tracker = new BigDecimal(0);
             for (int j = rowMin; j < temp.size(); j++) {
-                tracker += temp.get(j).get(i);
-                if (tracker != 0) {
+                tracker = temp.get(j).get(i).add(tracker);
+                if (tracker.compareTo(BigDecimal.ZERO) != 0) {
                     return i;
                 }
             }
@@ -135,20 +148,21 @@ public class MatrixTransformer {
     /*
     Used in the transform methods, finds the pivot row and moves it to the 'top' of the matrix.
      */
-    private double findAndSwapPivot(ArrayList<ArrayList<Double>> temp, int col, int rowMin) {
+    private BigDecimal findAndSwapPivot(ArrayList<ArrayList<BigDecimal>> temp, int col,
+                                        int rowMin) {
         int row = -1;
-        double pivot = 0;
+        BigDecimal pivot = new BigDecimal(0);
 
         for (int i = rowMin; i < temp.size(); i++) {
-            if (temp.get(i).get(col) != 0) {
+            if (temp.get(i).get(col).compareTo(BigDecimal.ZERO) != 0) {
                 row = i;
                 pivot = temp.get(i).get(col);
                 break;
             }
         }
         if (row != rowMin) {
-            ArrayList<Double> topRow = temp.get(rowMin);
-            ArrayList<Double> swapRow = temp.get(row);
+            ArrayList<BigDecimal> topRow = temp.get(rowMin);
+            ArrayList<BigDecimal> swapRow = temp.get(row);
             temp.remove(rowMin);
             temp.add(rowMin, swapRow);
             temp.remove(row);
@@ -158,10 +172,10 @@ public class MatrixTransformer {
     }
 
     // Returns the column containing the leading entry for a given row
-    private int findLeadingEntry(ArrayList<Double> row) {
+    private int findLeadingEntry(ArrayList<BigDecimal> row) {
         int col = 0;
-        for (Double i : row) {
-            if (i != 0) {
+        for (BigDecimal i : row) {
+            if (i.compareTo(BigDecimal.ZERO) != 0) {
                 break;
             }
             col++;
@@ -170,11 +184,11 @@ public class MatrixTransformer {
     }
 
     // Will return true if all values of the List are 0
-    private boolean checkAllZeros(ArrayList<Double> row) {
-        int tracker = 0;
-        for (Double i : row) {
-            tracker += i;
-            if (tracker != 0) {
+    private boolean checkAllZeros(ArrayList<BigDecimal> row) {
+        BigDecimal tracker = BigDecimal.ZERO;
+        for (BigDecimal i : row) {
+            tracker = tracker.add(i);
+            if (!tracker.equals(BigDecimal.ZERO)) {
                 return false;
             }
         }
@@ -182,22 +196,28 @@ public class MatrixTransformer {
     }
 
     // Used in the
-    private double getMultiplier(double i, double j) {
-        j = j * -1;
-        return (j / i);
+    private BigDecimal getMultiplier(BigDecimal i, BigDecimal j) {
+        j = j.negate();
+        try {
+            return (j.divide(i));
+        }
+        catch (Exception e) {
+            System.out.println(EXCEPTION);
+        }
+        return null;
     }
 
     /*
     Used to fulfill RULE 3 for REF and transforms matrix so that entries below the given pivot
     are all zero.
      */
-    private void createZerosBelowPivot(ArrayList<ArrayList<Double>> temp, int col,
-                                              double pivot) {
+    private void createZerosBelowPivot(ArrayList<ArrayList<BigDecimal>> temp, int col,
+                                              BigDecimal pivot) {
         // First find the row containing the pivot
         int i = 0;
         int tracker = -1;
-        for (ArrayList<Double> row : temp) {
-            if (row.get(col) == pivot) {
+        for (ArrayList<BigDecimal> row : temp) {
+            if (row.get(col).equals(pivot)) {
                 tracker = i;
                 break;
             }
@@ -206,12 +226,14 @@ public class MatrixTransformer {
         
         // Then transform matrix such that all entries below pivot are zero
         for (int index = tracker + 1; index < temp.size(); index++) {
-            ArrayList<Double> newRow = new ArrayList<>();
-            if (temp.get(index).get(col) != 0) {
-                double mult = getMultiplier(temp.get(tracker).get(col), temp.get(index).get(col));
+            ArrayList<BigDecimal> newRow = new ArrayList<>();
+            if (!temp.get(index).get(col).equals(BigDecimal.ZERO)) {
+                BigDecimal mult = getMultiplier(temp.get(tracker).get(col),
+                        temp.get(index).get(col));
                 for (int j = 0; j < temp.get(0).size(); j++) {
                     //int mult = getMultiplier(temp.get(tracker).get(j), temp.get(index).get(j));
-                    double newEntry = (temp.get(index).get(j)) + (temp.get(tracker).get(j) * mult);
+                    BigDecimal newEntry =
+                            (temp.get(index).get(j)).add(temp.get(tracker).get(j).multiply(mult));
                     newRow.add(newEntry);
                 }
                 temp.remove(index);
@@ -247,7 +269,7 @@ public class MatrixTransformer {
     // RULE 1 for REF: all nonzero rows must be above any rows consisting of all zeros
     private boolean checkRuleOneREF(Matrix matrix) {
         boolean zeroRowFound = false;
-        for (ArrayList<Double> row : matrix.entries) {
+        for (ArrayList<BigDecimal> row : matrix.entries) {
             if (zeroRowFound && !checkAllZeros(row)) {
                 return false;
             }
@@ -271,7 +293,7 @@ public class MatrixTransformer {
             }
             else {
                 for (int i = 0; i < col; i++) {
-                    if (matrix.entries.get(row).get(i) != 0) {
+                    if (matrix.entries.get(row).get(i).compareTo(BigDecimal.ZERO) != 0) {
                         return false;
                     }
                 }
@@ -292,7 +314,7 @@ public class MatrixTransformer {
             if (!checkAllZeros(matrix.entries.get(i))) {
                 int col = findLeadingEntry(matrix.entries.get(i));
                 for (int j = i + 1; j < matrix.height; j++) {
-                    if (matrix.entries.get(j).get(col) != 0) {
+                    if (matrix.entries.get(j).get(col).compareTo(BigDecimal.ZERO) != 0) {
                         return false;
                     }
                 }
@@ -303,10 +325,10 @@ public class MatrixTransformer {
 
     // RULE 1 for RREF: leading entry for a nonzero row must be 1
     private boolean checkRuleOneRREF(Matrix matrix) {
-        for (ArrayList<Double> row : matrix.entries) {
+        for (ArrayList<BigDecimal> row : matrix.entries) {
             if (!checkAllZeros(row)) {
                 int lead = findLeadingEntry(row);
-                if (row.get(lead) != 1) {
+                if (row.get(lead).compareTo(BigDecimal.ONE) != 0) {
                     return false;
                 }
             }
@@ -321,7 +343,7 @@ public class MatrixTransformer {
                 int col = findLeadingEntry(matrix.entries.get(i));
                 for (int j = 0; j < matrix.height; j++) {
                     if (j != i) {
-                        if (matrix.entries.get(j).get(col) != 0) {
+                        if (matrix.entries.get(j).get(col).compareTo(BigDecimal.ZERO) != 0) {
                             return false;
                         }
                     }

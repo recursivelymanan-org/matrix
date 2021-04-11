@@ -1,9 +1,10 @@
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Matrix {
 
-    ArrayList<ArrayList<Double>> entries;
+    ArrayList<ArrayList<BigDecimal>> entries;
     boolean isREF, isRREF;
     int height, length;
 
@@ -14,7 +15,7 @@ public class Matrix {
         this.entries = new ArrayList<>();
     }
 
-    public Matrix(ArrayList<ArrayList<Double>> entries) throws IllegalArgumentException {
+    public Matrix(ArrayList<ArrayList<BigDecimal>> entries) throws IllegalArgumentException {
         if (this.checkValid()) {
             this.entries = entries;
         }
@@ -31,7 +32,7 @@ public class Matrix {
         if (entries.size() < 2) { return false; }
 
         int rowLength = entries.get(0).size();
-        for (ArrayList<Double> row : entries) {
+        for (ArrayList<BigDecimal> row : entries) {
             if (row.size() != rowLength) {
                 return false;
             }
@@ -42,7 +43,7 @@ public class Matrix {
     @Override
     public String toString() {
         ArrayList<String> print = new ArrayList<>();
-        for (ArrayList<Double> row : entries) {
+        for (ArrayList<BigDecimal> row : entries) {
             print.add(row.toString() + "\n");
         }
         StringBuilder result = new StringBuilder();
