@@ -55,8 +55,8 @@ public class Matrix {
 
     public static void main(String[] args) {
         while (true) {
-            MatrixReader reader = new MatrixReader();
-            Matrix matrix = reader.readFromTerm();
+            Scanner scanner = new Scanner(System.in);
+            Matrix matrix = new MatrixReader().readFromTerm(scanner);
 
             MatrixTransformer trans = new MatrixTransformer();
             trans.transformREF(matrix);
@@ -66,7 +66,6 @@ public class Matrix {
             System.out.println(matrix);
 
             System.out.println(CONTINUE);
-            Scanner scanner = new Scanner(System.in);
             String choice = scanner.nextLine();
 
             if (!choice.equals("Y") && !choice.equals("y")) {

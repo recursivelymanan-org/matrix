@@ -17,11 +17,10 @@ public class MatrixReader {
     private final static String MATRIX_SAVED = "Matrix has been saved.";
 
 
-    public Matrix readFromTerm() {
+    public Matrix readFromTerm(Scanner scanner) {
         Matrix matrix = new Matrix();
         ArrayList<ArrayList<BigDecimal>> entries = new ArrayList<>();
         MatrixTransformer transformer = new MatrixTransformer();
-        Scanner scanner = new Scanner(System.in);
 
         System.out.println(PROMPT_USER_ENTRY);
 
